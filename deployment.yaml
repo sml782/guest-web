@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: guest-web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: guest
+        type: web
+        image: nginx
+    spec:
+      containers:
+        - name: guest-web
+          image: nginx:1.7.9
+          volumeMounts:
+          - mountPath: "/usr/share/nginx/html"
+            name: code
+            subPath: guest-web
+          ports:
+            - containerPort: 80
+      volumes:
+        - name: code
+          persistentVolumeClaim:
+            claimName: code-claims
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: guest-web
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: guest
+    image: nginx
+    type: web
